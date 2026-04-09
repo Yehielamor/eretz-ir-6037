@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eretz Ir - לוח בקרה</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #a5b4fc;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --gray: #9ca3af;
+            --gray-light: #e5e7eb;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rubik', sans-serif;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            direction: rtl;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background-color: white;
+            box-shadow: var(--box-shadow);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .nav-links {
+            list-style: none;
+            flex-grow: 1;
+        }
+
+        .nav-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            border-radius: var(--border-radius);
+            color: var(--dark);
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .nav-links a.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .nav-icon {
+            font-size: 1.25rem;
+        }
+
+        .user-section {
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--gray-light);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-info h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.75rem;
+            color: var(--gray);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-right: 260px;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header-left h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .header-left p {
+            color: var(--gray);
+            margin-top: 0.25rem;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .upgrade-badge {
+            background: linear-gradient(135deg, var(--warning), #fbbf24);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .upgrade-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .notifications {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .bell-icon {
+            font-size: 1.5rem;
+            color: var(--dark);
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            width: 10px;
+            height: 10px;
+            background-color: var(--danger);
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .header-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary), #34d399);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.125rem;
+            cursor: pointer;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-icon.games {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        .stat-icon.score {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
+        }
+
+        .stat-icon.players {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .stat-icon.accuracy {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.875rem;
+        }
+
+        .stat-change {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .positive {
+            color: var(--secondary);
+        }
+
+        .negative {
+            color: var(--danger);
+        }
+
+        /* Chart & Activity */
+        .content-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .content-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-container, .activity-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title-icon {
+            color: var(--primary);
+        }
+
+        .activity-list {
+            list-style: none;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .activity-icon.game {
+            background-color: var(--primary);
+        }
+
+        .activity-icon.chat {
+            background-color: var(--secondary);
+        }
+
+        .activity-icon.achievement {
+            background-color: var(--warning);
+        }
+
+        .activity-details h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-details p {
+            font-size: 0.75rem;
+            color: var(--gray);
+        }
+
+        .activity-time {
+            font-size: 0.75rem;
+            color: var(--gray);
+            margin-right: auto;
+        }
+
+        /* Leaderboard */
+        .leaderboard-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-table th {
+            text-align: right;
+            padding: 1rem;
+            border-bottom: 2px solid var(--gray-light);
+            color: var(--gray);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .leaderboard-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .leaderboard-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .player-rank {
+            font-weight: 700;
+            color: var(--dark);
+            width: 40px;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .player-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .player-score {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .player-change {
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 80px;
+                padding: 1rem 0.5rem;
+            }
+            .logo-text, .nav-links span, .user-info {
+                display: none;
+            }
+            .logo {
+                justify-content: center;
+                padding-bottom: 1rem;
+            }
+            .nav-links a {
+                justify-content: center;
+                padding: 0.875rem;
+            }
+            .user-section {
+                justify-content: center;
+            }
+            .main-content {
+                margin-right: 80px;
+                padding: 1rem;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">א</div>
+            <div class="logo-text">ארץ עיר</div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#" class="active"><span class="nav-icon">📊</span> <span>לוח בקרה</span></a></li>
+            <li><a href="#"><span class="nav-icon">🎮</span> <span>חדרי משחק</span></a></li>
+            <li><a href="#"><span class="nav-icon">🏆</span> <span>טבלת מובילים</span></a></li>
+            <li><a href="#"><span class="nav-icon">📈</span> <span>אנליטיקה</span></a></li>
+            <li><a href="#"><span class="nav-icon">⚙️</span> <span>הגדרות</span></a></li>
+        </ul>
+        <div class="user-section">
+            <div class="user-avatar">י</div>
+            <div class="user-info">
+                <h4>יוסי כהן</h4>
+                <p>משתמש פרימיום</p>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1>ברוכים הבאים, יוסי!</h1>
+                <p>הנה סקירה של הביצועים והפעילות האחרונה שלך במשחק</p>
+            </div>
+            <div class="header-right">
+                <div class="upgrade-badge">שדרג ל-Pro</div>
+                <div class="notifications">
+                    <div class="bell-icon">🔔</div>
+                    <div class="notification-dot"></div>
+                </div>
+                <div class="header-avatar">י</div>
+            </div>
+        </header>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value">1,247</div>
+                        <div class="stat-label">משחקים שהושלמו</div>
+                    </div>
+                    <div class="stat-icon games">🎮</div>
+                </div>
+                <div class="stat-change positive">+12% מהחודש שעבר</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value">42,850</div>
+                        <div class="stat-label">ניקוד כולל</div>
+                    </div>
+                    <div class="stat-icon score">⭐</div>
+                </div>
+                <div class="stat-change positive">+8% מהחודש שעבר</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value">583</div>
+                        <div class="stat-label">שחקנים נוצחו</div>
+                    </div>
+                    <div class="stat-icon players">👥</div>
+                </div>
+                <div class="stat-change positive">+5% מהחודש שעבר</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-value">94%</div>
+                        <div class="stat-label">דיוק מילים</div>
+                    </div>
+                    <div class="stat-icon accuracy">🎯</div>
+                </div>
+                <div class="stat-change negative">-2% מהחודש שעבר</div>
+            </div>
+        </div>
+
+        <!-- Chart & Recent Activity -->
+        <div class="content-row">
+            <div class="chart-container">
+                <h2 class="section-title"><span class="section-title-icon">📈</span> פעילות שבועית</h2>
+                <canvas id="activityChart"></canvas>
+            </div>
+            <div class="activity-container">
+                <h2 class="section-title"><span class="section-title-icon">🕒</span> פעילות אחרונה</h2>
+                <ul class="activity-list">
+                    <li class="activity-item">
+                        <div class="activity-icon game">🎮</div>
+                        <div class="activity-details">
+                            <h4>ניצחת במשחק חדר #452</h4>
+                            <p>ניקוד: 1,250 נקודות</p>
+                        </div>
+                        <div class="activity-time">לפני 15 דקות</div>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-icon chat">💬</div>
+                        <div class="activity-details">
+                            <h4>הודעה חדשה בקבוצה</h4>
+                            <p>מאת: דנה לוי</p>
+                        </div>
+                        <div class="activity-time">לפני 42 דקות</div>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-icon achievement">🏆</div>
+                        <div class="activity-details">
+                            <h4>השגה חדשה: "מלך האות ב'"</h4>
+                            <p>25 ניצחונות עם אות ב'</p>
+                        </div>
+                        <div class="activity-time">לפני שעתיים</div>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-icon game">🎮</div>
+                        <div class="activity-details">
+                            <h4>הצטרפת לחדר משחק #789</h4>
+                            <p>4 שחקנים בחדר</p>
+                        </div>
+                        <div class="activity-time">לפני 3 שעות</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="leaderboard-container">
+            <h2 class="section-title"><span class="section-title-icon">🏆</span> טבלת המובילים השבועית</h2>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>דירוג</th>
+                        <th>שחקן</th>
+                        <th>ניקוד</th>
+                        <th>שינוי</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <!-- Filled by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        // Authentication check
+        if (!localStorage.getItem('authToken')) {
+            window.location.href = 'auth.html';
+        }
+
+        // Mock Data
+        const mockLeaderboard = [
+            { id: 1, name: 'יוסי כהן', initials: 'י', score: 42850, change: '+2' },
+            { id: 2, name: 'דנה לוי', initials: 'ד', score: 41520, change: '+1' },
+            { id: 3, name: 'אביב ישראלי', initials: 'א', score: 39870, change: '+3' },
+            { id: 4, name: 'מיכל כץ', initials: 'מ', score: 38540, change: '-1' },
+            { id: 5, name: 'רוני פרץ', initials: 'ר', score: 37210, change: '+2' },
+            { id: 6, name: 'אורי שטרית', initials: 'א', score: 36580, change: '-2' },
+            { id: 7, name: 'נועה דוד', initials: 'נ', score: 35230, change: '+4' },
+            { id: 8, name: 'עידן חן', initials: 'ע', score: 34190, change: '0' },
+            { id: 9, name: 'שירה מלכה', initials: 'ש', score: 32850, change: '-3' },
+            { id: 10, name: 'תומר גולן', initials: 'ת', score: 31520, change: '+1' }
+        ];
+
+        // Populate Leaderboard
+        const leaderboardBody = document.getElementById('leaderboardBody');
+        mockLeaderboard.forEach(player => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="player-rank">#${player.id}</td>
+                <td>
+                    <div class="player-info">
+                        <div class="player-avatar" style="background: linear-gradient(135deg, ${getRandomColor()}, ${getRandomColor()});">${player.initials}</div>
+                        <div>${player.name}</div>
+                    </div>
+                </td>
+                <td class="player-score">${player.score.toLocaleString()}</td>
+                <td>
+                    <span class="player-change ${player.change.startsWith('+') ? 'positive' : player.change.startsWith('-') ? 'negative' : ''}">
+                        ${player.change}
+                    </span>
+                </td>
+            `;
+            leaderboardBody.appendChild(row);
+        });
+
+        // Chart.js Implementation
+        const ctx = document.getElementById('activityChart').getContext('2d');
+        const activityChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['יום א\'', 'יום ב\'', 'יום ג\'', 'יום ד\'', 'יום ה\'', 'יום ו\'', 'שבת'],
+                datasets: [{
+                    label: 'משחקים שהושלמו',
+                    data: [12, 19, 15, 25, 22, 30, 28],
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'ניקוד ממוצע',
+                    data: [850, 920, 880, 1100, 1050, 1250, 1150],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        rtl: true
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('he-IL');
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+
+        // Helper function for random colors
+        function getRandomColor() {
+            const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        // Interactive elements
+        document.querySelector('.upgrade-badge').addEventListener('click', function() {
+            alert('תכונת שדרוג ל-Pro תגיע בקרוב!');
+        });
+
+        document.querySelector('.notifications').addEventListener('click', function() {
+            alert('יש לך 3 התראות חדשות');
+        });
+
+        // Simulate real-time updates
+        setInterval(() => {
+            // Randomly update a stat card
+            const statValues = document.querySelectorAll('.stat-value');
+            const randomStat = statValues[Math.floor(Math.random() * statValues.length)];
+            const current = parseInt(randomStat.textContent.replace(/,/g, ''));
+            const change = Math.floor(Math.random() * 10) + 1;
+            const newValue = current + (Math.random() > 0.5 ? change : -change);
+            randomStat.textContent = newValue.toLocaleString('he-IL');
+        }, 10000);
+    </script>
+</body>
+</html>
